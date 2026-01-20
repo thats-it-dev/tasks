@@ -1,35 +1,47 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect } from 'react';
+import { SyncProvider, syncEngine } from './sync';
+import { db, serializeEntity, deserializeEntity } from './lib/db';
+import { useAppStore } from './store/appStore';
+import { AuthPanel } from './components/AuthPanel';
+import { CommandPalette } from './components/CommandPalette';
+
+// Configure sync engine with our database and serialization
+syncEngine.configure({
+  db,
+  serialize: serializeEntity,
+  deserialize: deserializeEntity,
+});
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { setCommandPaletteOpen } = useAppStore();
+
+  // Show keyboard shortcut hint
+  useEffect(() => {
+    console.log('Press ⌘K (or Ctrl+K) to open the command palette');
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
+    <SyncProvider db={db}>
+      <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] p-8">
+        <h1 className="text-2xl font-bold mb-4">Frontend Template</h1>
+        <p className="text-[var(--text-muted)] mb-4">
+          Local-first app template with sync support.
+        </p>
+        <p className="text-sm text-[var(--text-muted)]">
+          Press{' '}
+          <button
+            onClick={() => setCommandPaletteOpen(true)}
+            className="px-2 py-1 bg-[var(--bg-muted)] rounded border border-[var(--border)] hover:bg-[var(--bg-hover)]"
+          >
+            ⌘K
+          </button>{' '}
+          to open the command palette and log in.
         </p>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      <AuthPanel />
+      <CommandPalette />
+    </SyncProvider>
+  );
 }
 
-export default App
+export default App;

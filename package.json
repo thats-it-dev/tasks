@@ -10,10 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@thatsit/ui": "0.1.5",
     "dexie": "^4.2.1",
     "dexie-react-hooks": "^4.2.0",
+    "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "uuid": "^13.0.0",
     "zustand": "^5.0.9"
   },
   "devDependencies": {
@@ -21,6 +24,7 @@
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
+    "@types/uuid": "^11.0.0",
     "@vitejs/plugin-react": "^5.1.1",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
