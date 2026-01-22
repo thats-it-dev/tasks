@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Circle, CheckCircle2, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import type { Task } from '../lib/types';
 import { format, isToday, isPast, isTomorrow } from 'date-fns';
 
@@ -50,18 +50,14 @@ export function TaskItem({ task, onToggle, onDelete, onUpdate }: TaskItemProps) 
   };
 
   return (
-    <div className={`group flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-[var(--surface)] transition-colors ${task.completed ? 'opacity-60' : ''}`}>
-      {/* Checkbox */}
-      <button
-        onClick={() => onToggle(task.id)}
-        className="flex-shrink-0 text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors"
-      >
-        {task.completed ? (
-          <CheckCircle2 className="w-5 h-5 text-[var(--primary)]" />
-        ) : (
-          <Circle className="w-5 h-5" />
-        )}
-      </button>
+    <div className={`group flex items-center gap-3 py-2 rounded-lg hover:bg-[var(--surface)] transition-colors ${task.completed ? 'opacity-60' : ''}`}>
+      {/* Checkbox - using native input with @thatsit/ui styling */}
+      <input
+        type="checkbox"
+        checked={task.completed}
+        onChange={() => onToggle(task.id)}
+        className="flex-shrink-0 cursor-pointer"
+      />
 
       {/* Title */}
       {isEditing ? (
