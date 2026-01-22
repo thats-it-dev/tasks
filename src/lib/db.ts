@@ -1,71 +1,58 @@
 import Dexie, { type Table } from 'dexie';
-import type { Syncable, SyncMeta } from './types';
+import type { Task, SyncMeta } from './types';
 
-/**
- * Example syncable entity.
- * Replace this with your app's entities.
- */
-export interface Item extends Syncable {
-  title: string;
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export class AppDatabase extends Dexie {
-  items!: Table<Item, string>;
+export class TasksDatabase extends Dexie {
+  tasks!: Table<Task, string>;
   syncMeta!: Table<SyncMeta, string>;
 
   constructor() {
-    super('AppDatabase');
+    super('TasksDatabase');
 
     // Version 1: Initial schema
-    // All syncable tables need: id, _syncStatus, deletedAt indexes
     this.version(1).stores({
-      items: 'id, _syncStatus, deletedAt, createdAt, updatedAt',
+      tasks: 'id, completed, dueDate, _syncStatus, deletedAt, createdAt, updatedAt, *tags',
       syncMeta: 'key',
     });
   }
 }
 
-export const db = new AppDatabase();
+export const db = new TasksDatabase();
 
 /**
- * Serialization functions for sync.
- * Customize these for your entity types.
+ * Serialization for sync backend
  */
-export function serializeEntity(type: string, entity: Syncable): Record<string, unknown> {
-  switch (type) {
-    case 'items': {
-      const item = entity as Item;
-      return {
-        title: item.title,
-        content: item.content,
-        createdAt: item.createdAt.toISOString(),
-        updatedAt: item.updatedAt.toISOString(),
-      };
-    }
-    default:
-      throw new Error(`Unknown entity type: ${type}`);
-  }
+export function serializeTask(task: Task): Record<string, unknown> {
+  return {
+    title: task.title,
+    displayTitle: task.displayTitle,
+    tags: task.tags,
+    dueDate: task.dueDate?.toISOString(),
+    completed: task.completed,
+    completedAt: task.completedAt?.toISOString(),
+    createdAt: task.createdAt.toISOString(),
+    updatedAt: task.updatedAt.toISOString(),
+    noteId: task.noteId,
+    appType: task.appType,
+  };
 }
 
-export function deserializeEntity(
-  type: string,
+/**
+ * Deserialization from sync backend
+ */
+export function deserializeTask(
   data: Record<string, unknown>,
-  existing?: Syncable
-): Partial<Syncable> {
-  switch (type) {
-    case 'items': {
-      const existingItem = existing as Item | undefined;
-      return {
-        title: (data.title as string) || existingItem?.title || '',
-        content: (data.content as string) || existingItem?.content || '',
-        createdAt: data.createdAt ? new Date(data.createdAt as string) : existingItem?.createdAt || new Date(),
-        updatedAt: data.updatedAt ? new Date(data.updatedAt as string) : new Date(),
-      } as Partial<Item>;
-    }
-    default:
-      throw new Error(`Unknown entity type: ${type}`);
-  }
+  existing?: Task
+): Partial<Task> {
+  return {
+    title: (data.title as string) || existing?.title || '',
+    displayTitle: (data.displayTitle as string) || existing?.displayTitle || '',
+    tags: (data.tags as string[]) || existing?.tags || [],
+    dueDate: data.dueDate ? new Date(data.dueDate as string) : existing?.dueDate,
+    completed: (data.completed as boolean) ?? existing?.completed ?? false,
+    completedAt: data.completedAt ? new Date(data.completedAt as string) : existing?.completedAt,
+    createdAt: data.createdAt ? new Date(data.createdAt as string) : existing?.createdAt || new Date(),
+    updatedAt: data.updatedAt ? new Date(data.updatedAt as string) : new Date(),
+    noteId: (data.noteId as string) || existing?.noteId,
+    appType: ((data.appType as 'tasks' | 'notes') || existing?.appType || 'tasks'),
+  };
 }
