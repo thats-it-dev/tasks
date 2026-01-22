@@ -14,7 +14,7 @@ interface TaskListProps {
 export function TaskList({ dueToday, dueLater, onToggle, onDelete, onUpdate }: TaskListProps) {
   if (dueToday.length === 0 && dueLater.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-[var(--text-muted)]">
         <p className="text-lg">No tasks yet</p>
         <p className="text-sm mt-2">Create your first task above!</p>
       </div>

@@ -34,9 +34,9 @@ export function TaskInput({ onAdd }: TaskInputProps) {
   };
 
   return (
-    <div className="mb-6 px-3">
-      <div className="flex items-center gap-2 p-3 bg-white border-2 border-gray-200 rounded-lg focus-within:border-blue-400 transition-colors">
-        <Plus className="w-5 h-5 text-gray-400" />
+    <div className="mb-6">
+      <div className="flex items-center gap-2 p-3 bg-[var(--bg)] border border-[var(--border-color)] rounded-lg focus-within:border-[var(--primary)] transition-colors">
+        <Plus className="w-5 h-5 text-[var(--text-muted)]" />
         <input
           ref={inputRef}
           type="text"
@@ -45,10 +45,10 @@ export function TaskInput({ onAdd }: TaskInputProps) {
           onKeyDown={handleKeyDown}
           placeholder="New task... (try: Buy milk #groceries due:tomorrow)"
           disabled={isLoading}
-          className="flex-1 outline-none placeholder:text-gray-400"
+          className="flex-1 bg-transparent outline-none text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
         />
       </div>
-      <p className="mt-2 text-xs text-gray-500 px-3">
+      <p className="mt-2 text-xs text-[var(--text-muted)]">
         Pro tip: Use #tags and due:date (e.g., due:tomorrow, due:4/15)
       </p>
     </div>

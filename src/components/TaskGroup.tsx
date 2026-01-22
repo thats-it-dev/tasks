@@ -10,9 +10,9 @@ interface TaskGroupProps {
 export function TaskGroup({ icon, title, count, children }: TaskGroupProps) {
   return (
     <div className="mb-6">
-      <div className="flex items-center gap-2 mb-3 px-3">
-        <span className="text-gray-600">{icon}</span>
-        <h2 className="text-sm font-semibold text-gray-700">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-[var(--text-secondary)]">{icon}</span>
+        <h2 className="text-sm font-semibold text-[var(--text-secondary)]">
           {title} ({count})
         </h2>
       </div>
