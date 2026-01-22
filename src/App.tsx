@@ -1,47 +1,49 @@
 import { useEffect } from 'react';
-import { SyncProvider, syncEngine } from './sync';
-import { db, serializeEntity, deserializeEntity } from './lib/db';
-import { useAppStore } from './store/appStore';
-import { AuthPanel } from './components/AuthPanel';
-import { CommandPalette } from './components/CommandPalette';
+import { Layout } from './components/Layout';
+import { TaskInput } from './components/TaskInput';
+import { TaskList } from './components/TaskList';
+import { useTaskStore } from './store/taskStore';
+import { updateTask as updateTaskOp } from './lib/taskOperations';
+import { parseTaskInput } from './lib/parser';
 
-// Configure sync engine with our database and serialization
-syncEngine.configure({
-  db,
-  serialize: serializeEntity,
-  deserialize: deserializeEntity,
-});
+export default function App() {
+  const { dueToday, dueLater, loading, loadTasks, addTask, toggleTask, deleteTask, refreshTasks } = useTaskStore();
 
-function App() {
-  const { setCommandPaletteOpen } = useAppStore();
-
-  // Show keyboard shortcut hint
   useEffect(() => {
-    console.log('Press ⌘K (or Ctrl+K) to open the command palette');
-  }, []);
+    loadTasks();
+  }, [loadTasks]);
+
+  const handleUpdate = async (id: string, newTitle: string) => {
+    const parsed = parseTaskInput(newTitle);
+    await updateTaskOp(id, {
+      title: newTitle,
+      displayTitle: parsed.displayTitle,
+      tags: parsed.tags,
+      dueDate: parsed.dueDate || undefined,
+    });
+    await refreshTasks();
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="text-center py-12 text-gray-500">
+          Loading tasks...
+        </div>
+      </Layout>
+    );
+  }
 
   return (
-    <SyncProvider db={db}>
-      <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] p-8">
-        <h1 className="text-2xl font-bold mb-4">Frontend Template</h1>
-        <p className="text-[var(--text-muted)] mb-4">
-          Local-first app template with sync support.
-        </p>
-        <p className="text-sm text-[var(--text-muted)]">
-          Press{' '}
-          <button
-            onClick={() => setCommandPaletteOpen(true)}
-            className="px-2 py-1 bg-[var(--bg-muted)] rounded border border-[var(--border)] hover:bg-[var(--bg-hover)]"
-          >
-            ⌘K
-          </button>{' '}
-          to open the command palette and log in.
-        </p>
-      </div>
-      <AuthPanel />
-      <CommandPalette />
-    </SyncProvider>
+    <Layout>
+      <TaskInput onAdd={addTask} />
+      <TaskList
+        dueToday={dueToday}
+        dueLater={dueLater}
+        onToggle={toggleTask}
+        onDelete={deleteTask}
+        onUpdate={handleUpdate}
+      />
+    </Layout>
   );
 }
-
-export default App;
