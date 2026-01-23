@@ -8,11 +8,16 @@ import { useTaskStore } from './store/taskStore';
 import { useSyncStore } from './store/syncStore';
 import { updateTask as updateTaskOp } from './lib/taskOperations';
 import { parseTaskInput } from './lib/parser';
+import { useAppBadge } from './hooks/useAppBadge';
 import '@thatsit/ui/index.css';
 
 export default function App() {
   const { dueToday, dueLater, loading, loadTasks, toggleTask, deleteTask, refreshTasks } = useTaskStore();
   const { initialize, onSyncComplete } = useSyncStore();
+
+  // Count incomplete tasks due today for the app badge
+  const incompleteTodayCount = dueToday.filter(task => !task.completed).length;
+  useAppBadge(incompleteTodayCount);
 
   // Auto-detect system theme preference
   useEffect(() => {
