@@ -69,6 +69,11 @@ export function CommandPalette() {
       {commandPaletteOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-start md:items-center md:pt-0 justify-center z-[100]"
+          style={{
+            paddingTop: 'var(--safe-area-inset-top, 0px)',
+            paddingLeft: 'var(--safe-area-inset-left, 0px)',
+            paddingRight: 'var(--safe-area-inset-right, 0px)',
+          }}
           onClick={closePalette}
         >
           <Command
