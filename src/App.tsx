@@ -12,7 +12,7 @@ import '@thatsit/ui/index.css';
 
 export default function App() {
   const { dueToday, dueLater, loading, loadTasks, toggleTask, deleteTask, refreshTasks } = useTaskStore();
-  const { initialize, onSyncComplete } = useSyncStore();
+  const { initialize } = useSyncStore();
 
   // Auto-detect system theme preference
   useEffect(() => {
@@ -34,14 +34,6 @@ export default function App() {
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
-
-  // Refresh tasks when sync pulls new data from server
-  useEffect(() => {
-    const unsubscribe = onSyncComplete(() => {
-      refreshTasks();
-    });
-    return unsubscribe;
-  }, [onSyncComplete, refreshTasks]);
 
   const handleUpdate = async (id: string, newTitle: string) => {
     const parsed = parseTaskInput(newTitle);

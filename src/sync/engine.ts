@@ -3,8 +3,6 @@ import { syncConfig, getSyncType } from '../lib/syncConfig';
 import { v4 as uuidv4 } from 'uuid';
 import type Dexie from 'dexie';
 import type { Syncable, SyncMeta } from '../lib/types';
-import { RetryQueue } from './retryQueue';
-import { OperationLog } from './operationLog';
 
 export type SyncStatus = 'idle' | 'syncing' | 'offline' | 'error';
 
@@ -16,7 +14,6 @@ export interface SyncResult {
 
 type StatusChangeCallback = (status: SyncStatus) => void;
 type AuthErrorCallback = () => void;
-type SyncCompleteCallback = (result: SyncResult) => void;
 
 /**
  * Generate a unique client ID for this device/browser.
@@ -49,17 +46,12 @@ export class SyncEngine {
   private status: SyncStatus = 'idle';
   private statusCallbacks: Set<StatusChangeCallback> = new Set();
   private authErrorCallbacks: Set<AuthErrorCallback> = new Set();
-  private syncCompleteCallbacks: Set<SyncCompleteCallback> = new Set();
   private syncInterval: ReturnType<typeof setInterval> | null = null;
   private clientId: string;
   private config: SyncEngineConfig | null = null;
-  private retryQueue: RetryQueue;
-  private operationLog: OperationLog;
 
   constructor() {
     this.clientId = getClientId();
-    this.retryQueue = new RetryQueue(() => this.syncNow());
-    this.operationLog = new OperationLog();
   }
 
   /**
@@ -128,26 +120,15 @@ export class SyncEngine {
       // 2. Pull remote changes
       const pullResult = await this.pullChanges();
 
-      // Clear retry queue on success
-      this.retryQueue.recordSuccess();
-
       this.setStatus('idle');
 
-      const result = {
+      return {
         pushed: pushResult.pushed,
         pulled: pullResult.pulled,
         conflicts: pushResult.conflicts,
       };
-
-      // Notify listeners that sync completed
-      this.notifySyncComplete(result);
-
-      return result;
     } catch (error) {
       console.error('Sync error:', error);
-
-      // Schedule retry with exponential backoff
-      this.retryQueue.recordFailure();
 
       if (error instanceof Error) {
         if (error.message === 'Not authenticated' || error.message === 'Authentication expired') {
@@ -211,26 +192,17 @@ export class SyncEngine {
       return { pushed: 0, conflicts: [] };
     }
 
-    // Generate idempotency key for this batch
-    const idempotencyKey = `${this.clientId}-${Date.now()}-${uuidv4()}`;
-
-    // Track operation for crash recovery
-    const entityIds = changes.map(c => c.operation === 'delete' ? c.id : c.data.id);
-    this.operationLog.start('push', entityIds);
-
     // Push to server
     const result = await this.api.pushChanges({
       changes,
       clientId: this.clientId,
-      idempotencyKey,
     });
 
     // Mark applied entities as synced
     for (const tableName of syncConfig.tables) {
       const table = db.table(tableName);
-      const syncType = getSyncType(tableName);
       const appliedIds = result.applied.filter((id) =>
-        changes.some((c) => c.type === syncType && (c.operation === 'delete' ? c.id : c.data.id) === id)
+        changes.some((c) => c.type === tableName && (c.operation === 'delete' ? c.id : c.data.id) === id)
       );
 
       if (appliedIds.length > 0) {
@@ -256,9 +228,6 @@ export class SyncEngine {
     // Update sync token
     const syncMeta = db.table<SyncMeta, string>('syncMeta');
     await syncMeta.put({ key: 'lastSyncToken', value: result.syncToken });
-
-    // Mark operation complete
-    this.operationLog.complete();
 
     return { pushed: result.applied.length, conflicts: result.conflicts };
   }
@@ -373,21 +342,6 @@ export class SyncEngine {
 
   private notifyAuthError(): void {
     this.authErrorCallbacks.forEach((cb) => cb());
-  }
-
-  /**
-   * Subscribe to sync completion events.
-   * Called after each successful sync with the result.
-   */
-  onSyncComplete(callback: SyncCompleteCallback): () => void {
-    this.syncCompleteCallbacks.add(callback);
-    return () => {
-      this.syncCompleteCallbacks.delete(callback);
-    };
-  }
-
-  private notifySyncComplete(result: SyncResult): void {
-    this.syncCompleteCallbacks.forEach((cb) => cb(result));
   }
 }
 
