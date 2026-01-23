@@ -141,6 +141,7 @@ export type EntityChange = EntityUpsertChange | EntityDeleteChange;
 export interface BatchPushRequest {
   changes: EntityChange[];
   clientId: string;
+  idempotencyKey?: string;
 }
 
 export interface ConflictInfo {
