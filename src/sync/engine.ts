@@ -278,8 +278,15 @@ export class SyncEngine {
     const lastSyncMeta = await syncMeta.get('lastSyncToken');
     const since = lastSyncMeta?.value;
 
+    console.debug('[Sync] Pulling changes since:', since || 'beginning of time');
+
     // Fetch changes from server - use table names as the server expects them
     const result = await this.api.getChanges([...syncConfig.tables], since, this.clientId);
+
+    console.debug('[Sync] Server returned:', {
+      tasks: result.changes.tasks?.length || 0,
+      newSyncToken: result.syncToken,
+    });
 
     let pulled = 0;
 
@@ -318,6 +325,7 @@ export class SyncEngine {
               _syncStatus: 'synced',
               _localUpdatedAt: updatedAt,
             });
+            console.debug('[Sync] Updated existing task:', change.id);
           } else {
             await table.put({
               id: change.id,
@@ -325,6 +333,7 @@ export class SyncEngine {
               _syncStatus: 'synced',
               _localUpdatedAt: updatedAt,
             });
+            console.debug('[Sync] Created new task from remote:', change.id, entityData);
           }
           pulled++;
         }
