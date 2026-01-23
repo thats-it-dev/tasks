@@ -4,6 +4,7 @@ import { AuthPanel } from './components/AuthPanel';
 import { TaskList } from './components/TaskList';
 import { CommandPalette } from './components/CommandPalette';
 import { CommandButton } from './components/CommandButton';
+import { PullToRefresh } from './components/PullToRefresh';
 import { useTaskStore } from './store/taskStore';
 import { useSyncStore } from './store/syncStore';
 import { updateTask as updateTaskOp } from './lib/taskOperations';
@@ -13,7 +14,7 @@ import '@thatsit/ui/index.css';
 
 export default function App() {
   const { dueToday, dueLater, loading, loadTasks, toggleTask, deleteTask, refreshTasks } = useTaskStore();
-  const { initialize, onSyncComplete } = useSyncStore();
+  const { initialize, onSyncComplete, forceFullSync, isEnabled } = useSyncStore();
 
   // Count incomplete tasks due today for the app badge
   const incompleteTodayCount = dueToday.filter(task => !task.completed).length;
@@ -69,16 +70,25 @@ export default function App() {
     );
   }
 
+  const handleRefresh = async () => {
+    if (isEnabled) {
+      await forceFullSync();
+    }
+    await refreshTasks();
+  };
+
   return (
     <Layout>
-      <AuthPanel />
-      <TaskList
-        dueToday={dueToday}
-        dueLater={dueLater}
-        onToggle={toggleTask}
-        onDelete={deleteTask}
-        onUpdate={handleUpdate}
-      />
+      <PullToRefresh onRefresh={handleRefresh}>
+        <AuthPanel />
+        <TaskList
+          dueToday={dueToday}
+          dueLater={dueLater}
+          onToggle={toggleTask}
+          onDelete={deleteTask}
+          onUpdate={handleUpdate}
+        />
+      </PullToRefresh>
       <CommandPalette />
       <CommandButton />
     </Layout>

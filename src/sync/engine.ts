@@ -104,6 +104,22 @@ export class SyncEngine {
   }
 
   /**
+   * Force a full sync by clearing the sync token.
+   * This will re-fetch all data from the server.
+   */
+  async forceFullSync(): Promise<SyncResult> {
+    if (!this.config) {
+      throw new Error('SyncEngine not configured');
+    }
+
+    // Clear the sync token to force a full pull
+    const syncMeta = this.config.db.table<SyncMeta, string>('syncMeta');
+    await syncMeta.delete('lastSyncToken');
+
+    return this.syncNow();
+  }
+
+  /**
    * Perform a sync immediately.
    */
   async syncNow(): Promise<SyncResult> {

@@ -25,6 +25,7 @@ interface SyncStore {
   enable: (syncUrl: string, accessToken: string, refreshToken: string) => void;
   disable: () => Promise<void>;
   syncNow: () => Promise<void>;
+  forceFullSync: () => Promise<void>;
   initialize: () => Promise<void>;
   onSyncComplete: (callback: () => void) => () => void;
 }
@@ -92,6 +93,10 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
 
   syncNow: async () => {
     await syncEngine.syncNow();
+  },
+
+  forceFullSync: async () => {
+    await syncEngine.forceFullSync();
   },
 
   onSyncComplete: (callback: () => void) => {
