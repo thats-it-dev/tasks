@@ -4,10 +4,15 @@
  */
 export const syncConfig = {
   /** Unique identifier for this app (used by sync server) */
-  appId: 'my-app',
+  appId: 'tasks',
 
   /** Dexie table names that should be synced */
-  tables: ['items'] as const,
+  tables: ['tasks'] as const,
+
+  /** Map table names to sync API type names (backend uses singular) */
+  tableToSyncType: {
+    tasks: 'task',
+  } as Record<string, string>,
 
   /** Default sync server URL */
   defaultSyncUrl: 'https://sync.thatsit.app',
@@ -17,3 +22,8 @@ export const syncConfig = {
 };
 
 export type SyncableTable = (typeof syncConfig.tables)[number];
+
+/** Get the sync API type name for a table */
+export function getSyncType(tableName: string): string {
+  return syncConfig.tableToSyncType[tableName] || tableName;
+}

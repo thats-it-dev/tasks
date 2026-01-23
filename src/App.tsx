@@ -1,14 +1,18 @@
 import { useEffect } from 'react';
 import { Layout } from './components/Layout';
-import { TaskInput } from './components/TaskInput';
+import { AuthPanel } from './components/AuthPanel';
 import { TaskList } from './components/TaskList';
+import { CommandPalette } from './components/CommandPalette';
+import { CommandButton } from './components/CommandButton';
 import { useTaskStore } from './store/taskStore';
+import { useSyncStore } from './store/syncStore';
 import { updateTask as updateTaskOp } from './lib/taskOperations';
 import { parseTaskInput } from './lib/parser';
 import '@thatsit/ui/index.css';
 
 export default function App() {
-  const { dueToday, dueLater, loading, loadTasks, addTask, toggleTask, deleteTask, refreshTasks } = useTaskStore();
+  const { dueToday, dueLater, loading, loadTasks, toggleTask, deleteTask, refreshTasks } = useTaskStore();
+  const { initialize } = useSyncStore();
 
   // Auto-detect system theme preference
   useEffect(() => {
@@ -22,6 +26,10 @@ export default function App() {
     mediaQuery.addEventListener('change', handler);
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   useEffect(() => {
     loadTasks();
@@ -50,7 +58,7 @@ export default function App() {
 
   return (
     <Layout>
-      <TaskInput onAdd={addTask} />
+      <AuthPanel />
       <TaskList
         dueToday={dueToday}
         dueLater={dueLater}
@@ -58,6 +66,8 @@ export default function App() {
         onDelete={deleteTask}
         onUpdate={handleUpdate}
       />
+      <CommandPalette />
+      <CommandButton />
     </Layout>
   );
 }

@@ -50,7 +50,7 @@ export function TaskItem({ task, onToggle, onDelete, onUpdate }: TaskItemProps) 
   };
 
   return (
-    <div className={`group flex items-center gap-3 py-2 rounded-lg hover:bg-[var(--surface)] transition-colors ${task.completed ? 'opacity-60' : ''}`}>
+    <div className={`group flex items-center gap-3 py-2 ${task.completed ? 'opacity-60' : ''}`}>
       {/* Checkbox - using native input with @thatsit/ui styling */}
       <input
         type="checkbox"
@@ -68,12 +68,12 @@ export function TaskItem({ task, onToggle, onDelete, onUpdate }: TaskItemProps) 
           onChange={(e) => setEditValue(e.target.value)}
           onBlur={handleSave}
           onKeyDown={handleKeyDown}
-          className="flex-1 px-2 py-1 bg-[var(--bg)] text-[var(--text-primary)] border border-[var(--primary)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+          className="flex-1 px-2 py-1 bg-[var(--bg)] border border-[var(--primary)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
         />
       ) : (
         <button
           onClick={() => setIsEditing(true)}
-          className={`flex-1 text-left text-[var(--text-primary)] ${task.completed ? 'line-through' : ''}`}
+          className={`flex-1 text-left ${task.completed ? 'line-through' : ''}`}
         >
           {task.displayTitle}
         </button>

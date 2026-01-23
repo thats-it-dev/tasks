@@ -1,17 +1,15 @@
 import { Command, Button, Dialog } from '@thatsit/ui';
 import { useAppStore } from '../store/appStore';
+import { useTaskStore } from '../store/taskStore';
+import { useSyncStore } from '../store/syncStore';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useSync } from '../sync';
+import { db } from '../lib/db';
 
 export function CommandPalette() {
-  const {
-    commandPaletteOpen,
-    setCommandPaletteOpen,
-    setAuthPanelOpen,
-  } = useAppStore();
-
-  const { isEnabled, disable } = useSync();
+  const { commandPaletteOpen, setCommandPaletteOpen, setAuthPanelOpen } = useAppStore();
+  const { addTask } = useTaskStore();
+  const { isEnabled, disable } = useSyncStore();
   const [search, setSearch] = useState('');
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
@@ -44,12 +42,19 @@ export function CommandPalette() {
     setSearch('');
   };
 
-  const handleLogout = (deleteLocalData: boolean) => {
-    if (deleteLocalData) {
-      // Apps should override this to clear their own data
-      // For example: db.items.clear(); db.syncMeta.clear();
+  const handleCreateTask = async () => {
+    if (search.trim()) {
+      await addTask(search.trim());
+      closePalette();
     }
-    disable();
+  };
+
+  const handleLogout = async (deleteLocalData: boolean) => {
+    if (deleteLocalData) {
+      await db.tasks.clear();
+      await db.syncMeta.clear();
+    }
+    await disable();
     setShowLogoutDialog(false);
     closePalette();
     if (deleteLocalData) {
@@ -70,19 +75,21 @@ export function CommandPalette() {
             label="Command Menu"
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
             loop
+            shouldFilter={false}
           >
             <Command.Input
-              placeholder="Search commands..."
+              placeholder="Create a task..."
               autoFocus
               value={search}
               onValueChange={setSearch}
             />
             <Command.List>
-              <Command.Empty>No results found</Command.Empty>
+              <Command.Empty>Type to create a task</Command.Empty>
 
-              {/* Apps can add their own command groups here */}
-              <Command.Group heading="Commands">
-                {/* Example: Apps add their commands here */}
+              <Command.Group heading="Create">
+                <Command.Item onSelect={handleCreateTask}>
+                  {search.trim() ? `Create task: ${search}` : 'Create task'}
+                </Command.Item>
               </Command.Group>
 
               <Command.Group heading="Settings">

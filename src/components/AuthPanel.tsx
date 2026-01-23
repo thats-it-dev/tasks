@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
+import { useSyncStore } from '../store/syncStore';
 import { Button, Input } from '@thatsit/ui';
 import { createPortal } from 'react-dom';
 import { X, ArrowLeft, Mail, Loader2, Clock } from 'lucide-react';
-import { useSync, authStart, authSignup, authSendOtp, authVerifyOtp } from '../sync';
+import { authStart, authSignup, authSendOtp, authVerifyOtp } from '../sync';
 import { syncConfig } from '../lib/syncConfig';
 import './AuthPanel.css';
 
@@ -11,7 +12,7 @@ type AuthStep = 'email' | 'signup' | 'signin' | 'magic-link-sent' | 'otp-sent' |
 
 export function AuthPanel() {
   const { authPanelOpen, setAuthPanelOpen } = useAppStore();
-  const { isEnabled, enable } = useSync();
+  const { isEnabled, enable } = useSyncStore();
 
   const [syncUrl, setSyncUrl] = useState(() => localStorage.getItem('syncUrl') || syncConfig.defaultSyncUrl);
   const [email, setEmail] = useState('');

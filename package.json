@@ -11,7 +11,8 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@thatsit/ui": "0.1.5",
+    "@tailwindcss/vite": "^4.1.18",
+    "@thatsit/ui": "0.1.7",
     "date-fns": "^4.1.0",
     "dexie": "^4.2.1",
     "dexie-react-hooks": "^4.2.0",
@@ -23,7 +24,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@tailwindcss/vite": "^4.1.18",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",

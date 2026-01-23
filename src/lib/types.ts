@@ -31,6 +31,7 @@ export interface Task extends Syncable {
 
   // Cross-app reference
   noteId?: string;               // If task came from notes app
+  blockId?: string;              // BlockNote block ID (for notes app tasks)
   appType: 'tasks' | 'notes';    // Which app created it
 }
 

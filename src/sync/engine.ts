@@ -1,5 +1,5 @@
 import { SyncApiClient, type EntityChange, type ConflictInfo } from './api';
-import { syncConfig } from '../lib/syncConfig';
+import { syncConfig, getSyncType } from '../lib/syncConfig';
 import { v4 as uuidv4 } from 'uuid';
 import type Dexie from 'dexie';
 import type { Syncable, SyncMeta } from '../lib/types';
@@ -159,6 +159,7 @@ export class SyncEngine {
     // Gather pending changes from all configured tables
     for (const tableName of syncConfig.tables) {
       const table = db.table(tableName);
+      const syncType = getSyncType(tableName);
       const pendingEntities = await table
         .where('_syncStatus')
         .equals('pending')
@@ -167,7 +168,7 @@ export class SyncEngine {
       for (const entity of pendingEntities) {
         if (entity.deletedAt) {
           changes.push({
-            type: tableName,
+            type: syncType,
             operation: 'delete',
             id: entity.id,
             deletedAt: entity.deletedAt.toISOString(),
@@ -175,7 +176,7 @@ export class SyncEngine {
         } else {
           const data = serialize(tableName, entity);
           changes.push({
-            type: tableName,
+            type: syncType,
             operation: 'upsert',
             data: {
               id: entity.id,
@@ -246,7 +247,7 @@ export class SyncEngine {
     const lastSyncMeta = await syncMeta.get('lastSyncToken');
     const since = lastSyncMeta?.value;
 
-    // Fetch changes from server
+    // Fetch changes from server - use table names as the server expects them
     const result = await this.api.getChanges([...syncConfig.tables], since, this.clientId);
 
     let pulled = 0;

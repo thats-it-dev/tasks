@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { parseTaskInput } from './parser';
-import { startOfDay, addDays } from 'date-fns';
+import { startOfDay, addDays, addWeeks, nextMonday } from 'date-fns';
 
 describe('parseTaskInput', () => {
   test('extracts single tag', () => {
@@ -57,5 +57,31 @@ describe('parseTaskInput', () => {
     expect(result.displayTitle).toBe('');
     expect(result.tags).toEqual([]);
     expect(result.dueDate).toBeNull();
+  });
+
+  test('parses due:+N (relative days)', () => {
+    const result = parseTaskInput('Task due:+3');
+    const expected = startOfDay(addDays(new Date(), 3));
+    expect(result.dueDate?.getTime()).toBe(expected.getTime());
+    expect(result.displayTitle).toBe('Task');
+  });
+
+  test('parses due:next-week', () => {
+    const result = parseTaskInput('Task due:next-week');
+    const expected = nextMonday(startOfDay(new Date()));
+    expect(result.dueDate?.getTime()).toBe(expected.getTime());
+  });
+
+  test('parses due:"next week" with quotes', () => {
+    const result = parseTaskInput('Task due:"next week"');
+    const expected = nextMonday(startOfDay(new Date()));
+    expect(result.dueDate?.getTime()).toBe(expected.getTime());
+    expect(result.displayTitle).toBe('Task');
+  });
+
+  test('parses due:in-2-weeks', () => {
+    const result = parseTaskInput('Task due:in-2-weeks');
+    const expected = startOfDay(addWeeks(new Date(), 2));
+    expect(result.dueDate?.getTime()).toBe(expected.getTime());
   });
 });

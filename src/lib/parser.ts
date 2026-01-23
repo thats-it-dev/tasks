@@ -1,4 +1,4 @@
-import { startOfDay, addDays, parse, isValid } from 'date-fns';
+import { startOfDay, addDays, addWeeks, parse, isValid, nextMonday } from 'date-fns';
 
 export interface ParsedTask {
   displayTitle: string;
@@ -18,12 +18,16 @@ export function parseTaskInput(input: string): ParsedTask {
   const tags: string[] = [];
   let dueDate: Date | null = null;
 
-  // Extract due:xxx
-  const dueMatch = text.match(/due:(\S+)/i);
-  if (dueMatch) {
-    dueDate = parseDueDate(dueMatch[1]);
-    // Remove due:xxx from display
-    text = text.replace(/due:\S+/i, '').trim();
+  // Extract due:"quoted phrase" or due:single-word (with hyphens, plus, slash)
+  const quotedDueMatch = text.match(/due:"([^"]+)"/i);
+  const wordDueMatch = text.match(/due:([\w+\-/]+)/i);
+
+  if (quotedDueMatch) {
+    dueDate = parseDueDate(quotedDueMatch[1]);
+    text = text.replace(/due:"[^"]+"/i, '').trim();
+  } else if (wordDueMatch) {
+    dueDate = parseDueDate(wordDueMatch[1]);
+    text = text.replace(/due:[\w+\-/]+/i, '').trim();
   }
 
   // Extract #tags (but keep them in displayTitle)
@@ -42,12 +46,14 @@ export function parseTaskInput(input: string): ParsedTask {
 /**
  * Parse due date from various formats:
  * - today, tomorrow
+ * - +N (N days from now)
  * - monday, tuesday, etc (next occurrence)
+ * - next-week, next-month
  * - 4/15, 12/25 (M/D)
  * - 2026-04-15 (ISO)
  */
 function parseDueDate(input: string): Date | null {
-  const normalized = input.toLowerCase();
+  const normalized = input.toLowerCase().replace(/\s+/g, '-');
   const today = startOfDay(new Date());
 
   // Relative dates
@@ -56,6 +62,33 @@ function parseDueDate(input: string): Date | null {
   }
   if (normalized === 'tomorrow') {
     return addDays(today, 1);
+  }
+
+  // +N format (e.g., +3 for 3 days from now)
+  const plusMatch = normalized.match(/^\+(\d+)$/);
+  if (plusMatch) {
+    return addDays(today, parseInt(plusMatch[1], 10));
+  }
+
+  // next-week, next-month
+  if (normalized === 'next-week') {
+    return nextMonday(today);
+  }
+  if (normalized === 'next-month') {
+    const nextMonth = new Date(today);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    nextMonth.setDate(1);
+    return startOfDay(nextMonth);
+  }
+
+  // in-N-days, in-N-weeks
+  const inDaysMatch = normalized.match(/^in-(\d+)-days?$/);
+  if (inDaysMatch) {
+    return addDays(today, parseInt(inDaysMatch[1], 10));
+  }
+  const inWeeksMatch = normalized.match(/^in-(\d+)-weeks?$/);
+  if (inWeeksMatch) {
+    return addWeeks(today, parseInt(inWeeksMatch[1], 10));
   }
 
   // Weekday names (next occurrence)
