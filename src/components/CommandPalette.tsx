@@ -9,8 +9,7 @@ import { db } from '../lib/db';
 export function CommandPalette() {
   const { commandPaletteOpen, setCommandPaletteOpen, setAuthPanelOpen } = useAppStore();
   const { addTask } = useTaskStore();
-  const { isEnabled, disable, forceFullSync } = useSyncStore();
-  const { refreshTasks } = useTaskStore();
+  const { isEnabled, disable } = useSyncStore();
   const [search, setSearch] = useState('');
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
@@ -99,17 +98,6 @@ export function CommandPalette() {
               </Command.Group>
 
               <Command.Group heading="Settings">
-                {isEnabled && (
-                  <Command.Item
-                    onSelect={async () => {
-                      await forceFullSync();
-                      await refreshTasks();
-                      closePalette();
-                    }}
-                  >
-                    Force full sync
-                  </Command.Item>
-                )}
                 {isEnabled ? (
                   <Command.Item
                     onSelect={() => {

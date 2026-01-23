@@ -25,7 +25,6 @@ interface SyncStore {
   enable: (syncUrl: string, accessToken: string, refreshToken: string) => void;
   disable: () => Promise<void>;
   syncNow: () => Promise<void>;
-  forceFullSync: () => Promise<void>;
   initialize: () => Promise<void>;
   onSyncComplete: (callback: () => void) => () => void;
 }
@@ -92,13 +91,6 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
   },
 
   syncNow: async () => {
-    await syncEngine.syncNow();
-  },
-
-  forceFullSync: async () => {
-    // Clear sync token to force full re-pull from server
-    await db.syncMeta.delete('lastSyncToken');
-    console.debug('[Sync] Cleared sync token, forcing full re-sync');
     await syncEngine.syncNow();
   },
 
