@@ -13,6 +13,19 @@ export class TasksDatabase extends Dexie {
       tasks: 'id, completed, dueDate, _syncStatus, deletedAt, createdAt, updatedAt, *tags',
       syncMeta: 'key',
     });
+
+    // Version 2: Added noteId, blockId, appType fields for cross-app sync
+    // Clear sync token to force full re-sync with new fields
+    this.version(2)
+      .stores({
+        tasks: 'id, completed, dueDate, _syncStatus, deletedAt, createdAt, updatedAt, *tags, noteId, appType',
+        syncMeta: 'key',
+      })
+      .upgrade(async (tx) => {
+        // Clear sync token to force full re-sync
+        await tx.table('syncMeta').delete('lastSyncToken');
+        console.log('Cleared sync token for schema upgrade to v2');
+      });
   }
 }
 

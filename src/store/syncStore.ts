@@ -3,6 +3,7 @@ import { syncEngine, type SyncStatus } from '../sync/engine';
 import { syncConfig } from '../lib/syncConfig';
 import { db, serializeTask, deserializeTask } from '../lib/db';
 import type { Syncable } from '../lib/types';
+import { ensureSyncHooksInitialized } from '../sync/hooks';
 
 // Configure sync engine with database and serialization
 syncEngine.configure({
@@ -25,6 +26,7 @@ interface SyncStore {
   disable: () => Promise<void>;
   syncNow: () => Promise<void>;
   initialize: () => Promise<void>;
+  onSyncComplete: (callback: () => void) => () => void;
 }
 
 // Prevent concurrent refresh attempts (token rotation means old token is invalidated)
@@ -92,7 +94,14 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
     await syncEngine.syncNow();
   },
 
+  onSyncComplete: (callback: () => void) => {
+    return syncEngine.onSyncComplete(() => callback());
+  },
+
   initialize: async () => {
+    // Initialize sync hooks to track local changes
+    ensureSyncHooksInitialized(db);
+
     // Subscribe to status changes
     syncEngine.onStatusChange((status) => set({ status }));
 
