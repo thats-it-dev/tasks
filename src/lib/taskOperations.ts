@@ -95,6 +95,11 @@ export async function getAllTasks(): Promise<Task[]> {
 
 /**
  * Get tasks grouped by due date
+ *
+ * Due Today shows:
+ * - Tasks due today (always, regardless of completion date)
+ * - Overdue tasks that are incomplete OR completed today
+ * - Tasks with no due date that are incomplete OR completed today
  */
 export async function getTasksByDueDate(): Promise<{
   dueToday: Task[];
@@ -107,11 +112,26 @@ export async function getTasksByDueDate(): Promise<{
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
+  // Helper to check if task was completed on a previous day
+  const wasCompletedOnPreviousDay = (task: Task): boolean => {
+    if (!task.completed || !task.completedAt) return false;
+    const completedDate = new Date(task.completedAt);
+    completedDate.setHours(0, 0, 0, 0);
+    return completedDate.getTime() < today.getTime();
+  };
+
   const dueToday = tasks.filter(task => {
-    if (!task.dueDate) return true; // No due date = show in "today"
-    const dueDate = new Date(task.dueDate);
-    dueDate.setHours(0, 0, 0, 0);
-    return dueDate < tomorrow; // Today or overdue
+    if (task.dueDate) {
+      const dueDate = new Date(task.dueDate);
+      dueDate.setHours(0, 0, 0, 0);
+      // Due today: always show (even if completed on a previous day)
+      if (dueDate.getTime() === today.getTime()) return true;
+      // Overdue: show if incomplete OR completed today
+      if (dueDate < today) return !wasCompletedOnPreviousDay(task);
+      return false;
+    }
+    // No due date: show if incomplete OR completed today (not on a previous day)
+    return !wasCompletedOnPreviousDay(task);
   });
 
   const dueLater = tasks.filter(task => {
@@ -148,7 +168,9 @@ export async function getTasksByDueDate(): Promise<{
 
 /**
  * Get archived tasks grouped by completion date
- * Archived = completed on a previous day AND not due today
+ *
+ * Archive shows tasks that are:
+ * - Completed on a previous day AND not due today
  */
 export async function getArchivedTasks(): Promise<Map<string, Task[]>> {
   const tasks = await getAllTasks();
@@ -156,15 +178,16 @@ export async function getArchivedTasks(): Promise<Map<string, Task[]>> {
   today.setHours(0, 0, 0, 0);
 
   const archived = tasks.filter(task => {
+    // Must be completed with a completion date
     if (!task.completed || !task.completedAt) return false;
 
     const completedDate = new Date(task.completedAt);
     completedDate.setHours(0, 0, 0, 0);
 
-    // If completed today, not archived
-    if (completedDate.getTime() === today.getTime()) return false;
+    // Must be completed on a previous day (not today)
+    if (completedDate.getTime() >= today.getTime()) return false;
 
-    // If due today, not archived (stays visible in main view)
+    // Tasks due today stay in main view, not archive
     if (task.dueDate) {
       const dueDate = new Date(task.dueDate);
       dueDate.setHours(0, 0, 0, 0);
