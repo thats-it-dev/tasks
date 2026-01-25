@@ -12,8 +12,8 @@ importers:
         specifier: ^4.1.18
         version: 4.1.18(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1))
       '@thatsit/ui':
-        specifier: 0.1.7
-        version: 0.1.7(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(cmdk@1.1.1(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(tailwindcss@4.1.18)
+        specifier: 0.1.8
+        version: 0.1.8(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(cmdk@1.1.1(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(tailwindcss@4.1.18)
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -1444,8 +1444,8 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7
 
-  '@thatsit/ui@0.1.7':
-    resolution: {integrity: sha512-AF20GRonIPCMtdszS9HcXG9SyXxrKH5oDQfZDLW4Yy0lCTNkDSkkVCR006+uh0hKmJaruNtfiZs6OcIsrp9WVg==}
+  '@thatsit/ui@0.1.8':
+    resolution: {integrity: sha512-mForqmN3sdzoIzIlN0gPEDp5XAgWzfms6kEbmHns4FhvT2E/zC5HWxlocmn8OxzfqUaZ1GP+v0uG8GfYiBEq8w==}
     peerDependencies:
       cmdk: ^1.1.1
       react: ^19.0.0
@@ -4474,7 +4474,7 @@ snapshots:
       tailwindcss: 4.1.18
       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)
 
-  '@thatsit/ui@0.1.7(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(cmdk@1.1.1(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(tailwindcss@4.1.18)':
+  '@thatsit/ui@0.1.8(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(cmdk@1.1.1(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(tailwindcss@4.1.18)':
     dependencies:
       '@radix-ui/react-dialog': 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@radix-ui/react-slot': 1.2.4(@types/react@19.2.7)(react@19.2.3)

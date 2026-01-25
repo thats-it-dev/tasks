@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { Trash2 } from 'lucide-react';
 import type { Task } from '../lib/types';
 import { format, isToday, isPast, isTomorrow } from 'date-fns';
+import { useTaskStore } from '../store/taskStore';
+import { useAppStore } from '../store/appStore';
 
 interface TaskItemProps {
   task: Task;
@@ -10,10 +12,47 @@ interface TaskItemProps {
   onUpdate: (id: string, title: string) => void;
 }
 
+function renderTitleWithTags(
+  displayTitle: string,
+  onTagClick: (tag: string) => void
+) {
+  const parts = displayTitle.split(/(#\w+)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('#')) {
+      return (
+        <button
+          key={i}
+          onClick={(e) => {
+            e.stopPropagation();
+            onTagClick(part.slice(1));
+          }}
+          className="font-medium text-[var(--primary)] hover:underline"
+        >
+          {part}
+        </button>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 export function TaskItem({ task, onToggle, onDelete, onUpdate }: TaskItemProps) {
-  const [isEditing, setIsEditing] = useState(false);
+  const addFilter = useTaskStore((state) => state.addFilter);
+  const focusedTaskId = useAppStore((state) => state.focusedTaskId);
+  const setFocusedTaskId = useAppStore((state) => state.setFocusedTaskId);
+
+  // Check if this task should start in edit mode
+  const shouldStartEditing = focusedTaskId === task.id;
+  const [isEditing, setIsEditing] = useState(shouldStartEditing);
   const [editValue, setEditValue] = useState(task.title);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Clear focused task ID after we've consumed it
+  useEffect(() => {
+    if (shouldStartEditing) {
+      setFocusedTaskId(null);
+    }
+  }, [shouldStartEditing, setFocusedTaskId]);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -71,12 +110,12 @@ export function TaskItem({ task, onToggle, onDelete, onUpdate }: TaskItemProps) 
           className="flex-1 px-2 py-1 bg-[var(--bg)] border border-[var(--primary)] rounded focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
         />
       ) : (
-        <button
+        <span
           onClick={() => setIsEditing(true)}
-          className={`flex-1 text-left ${task.completed ? 'line-through' : ''}`}
+          className={`flex-1 text-left cursor-text ${task.completed ? 'line-through' : ''}`}
         >
-          {task.displayTitle}
-        </button>
+          {renderTitleWithTags(task.displayTitle, addFilter)}
+        </span>
       )}
 
       {/* Due Date */}

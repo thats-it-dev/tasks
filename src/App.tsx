@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Layout } from './components/Layout';
 import { AuthPanel } from './components/AuthPanel';
 import { TaskList } from './components/TaskList';
+import { FilterBar } from './components/FilterBar';
 import { CommandPalette } from './components/CommandPalette';
 import { CommandButton } from './components/CommandButton';
 import { PullToRefresh } from './components/PullToRefresh';
@@ -13,7 +14,7 @@ import { useAppBadge } from './hooks/useAppBadge';
 import '@thatsit/ui/index.css';
 
 export default function App() {
-  const { dueToday, dueLater, loading, loadTasks, toggleTask, deleteTask, refreshTasks } = useTaskStore();
+  const { dueToday, loading, loadTasks, toggleTask, deleteTask, refreshTasks, getFilteredDueToday, getFilteredDueLater } = useTaskStore();
   const { initialize, onSyncComplete, forceFullSync, isEnabled } = useSyncStore();
 
   // Count incomplete tasks due today for the app badge
@@ -81,9 +82,10 @@ export default function App() {
     <Layout>
       <PullToRefresh onRefresh={handleRefresh}>
         <AuthPanel />
+        <FilterBar />
         <TaskList
-          dueToday={dueToday}
-          dueLater={dueLater}
+          dueToday={getFilteredDueToday()}
+          dueLater={getFilteredDueLater()}
           onToggle={toggleTask}
           onDelete={deleteTask}
           onUpdate={handleUpdate}

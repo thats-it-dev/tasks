@@ -3,19 +3,23 @@ import { create } from 'zustand';
 interface AppStore {
   commandPaletteOpen: boolean;
   authPanelOpen: boolean;
+  focusedTaskId: string | null;
 
   setCommandPaletteOpen: (open: boolean) => void;
   toggleCommandPalette: () => void;
   setAuthPanelOpen: (open: boolean) => void;
   toggleAuthPanel: () => void;
+  setFocusedTaskId: (id: string | null) => void;
 }
 
 export const useAppStore = create<AppStore>((set) => ({
   commandPaletteOpen: false,
   authPanelOpen: false,
+  focusedTaskId: null,
 
   setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
   toggleCommandPalette: () => set((state) => ({ commandPaletteOpen: !state.commandPaletteOpen })),
   setAuthPanelOpen: (open) => set({ authPanelOpen: open }),
   toggleAuthPanel: () => set((state) => ({ authPanelOpen: !state.authPanelOpen })),
+  setFocusedTaskId: (id) => set({ focusedTaskId: id }),
 }));
