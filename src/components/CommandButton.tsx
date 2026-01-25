@@ -44,55 +44,64 @@ export function CommandButton() {
 
   return (
     <div
-      className="fixed z-50 flex flex-col items-center gap-2 transition-[bottom] duration-200"
+      className="fixed z-50 transition-[bottom] duration-200"
       style={{ bottom: bottomOffset, right: rightOffset }}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      {/* Quick action buttons */}
       <div
-        className={`flex flex-col gap-2 transition-all duration-200 ${
-          showActions ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+        className={`flex flex-col items-center rounded-xl overflow-hidden transition-shadow duration-200 ${
+          showActions ? 'shadow-xl' : ''
         }`}
+        style={{ backgroundColor: 'var(--bg)' }}
       >
-        <Button
-          variant="ghost"
-          onClick={handleCollapse}
-          className="w-12 h-12 items-center justify-center bg-[var(--bg)] rounded-full"
-          title="Collapse"
+        {/* Quick action buttons */}
+        <div
+          className={`grid transition-[grid-template-rows] duration-200 ${
+            showActions ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+          }`}
         >
-          <ChevronDown size={20} />
-        </Button>
-        <Button
-          variant="ghost"
-          onClick={handleNewTask}
-          className="w-12 h-12 items-center justify-center bg-[var(--bg)] rounded-full"
-          title="New task"
-        >
-          <Plus size={20} />
-        </Button>
-      </div>
+          <div className="overflow-hidden flex flex-col">
+            <Button
+              variant="ghost"
+              onClick={handleCollapse}
+              className="w-12 h-12 items-center justify-center"
+              title="Collapse"
+            >
+              <ChevronDown size={20} />
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleNewTask}
+              className="w-12 h-12 items-center justify-center"
+              title="New task"
+            >
+              <Plus size={20} />
+            </Button>
+          </div>
+        </div>
 
-      {/* Main command button / back button */}
-      {currentView === 'archive' ? (
-        <Button
-          variant="ghost"
-          onClick={() => setCurrentView('tasks')}
-          className="lg:hidden md:visible w-12 h-12 items-center justify-center bg-[var(--bg)] rounded-full"
-          aria-label="Back to tasks"
-        >
-          <ArrowLeft size={28} />
-        </Button>
-      ) : (
-        <Button
-          variant="ghost"
-          onClick={handleMainButtonClick}
-          className="lg:hidden md:visible w-12 h-12 items-center justify-center bg-[var(--bg)] rounded-full"
-          aria-label="Open command palette"
-        >
-          <CommandIcon size={28} />
-        </Button>
-      )}
+        {/* Main command button / back button */}
+        {currentView === 'archive' ? (
+          <Button
+            variant="ghost"
+            onClick={() => setCurrentView('tasks')}
+            className="lg:hidden md:visible w-12 h-12 items-center justify-center"
+            aria-label="Back to tasks"
+          >
+            <ArrowLeft size={28} />
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            onClick={handleMainButtonClick}
+            className="lg:hidden md:visible w-12 h-12 items-center justify-center"
+            aria-label="Open command palette"
+          >
+            <CommandIcon size={28} />
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
