@@ -115,7 +115,11 @@ export async function getTasksByDueDate(): Promise<{
   // Helper to check if task was completed on a previous day
   const wasCompletedOnPreviousDay = (task: Task): boolean => {
     if (!task.completed || !task.completedAt) return false;
-    const completedDate = new Date(task.completedAt);
+    // Handle both Date objects and ISO strings from IndexedDB
+    const completedDate = new Date(
+      task.completedAt instanceof Date ? task.completedAt : String(task.completedAt)
+    );
+    if (isNaN(completedDate.getTime())) return false;
     completedDate.setHours(0, 0, 0, 0);
     return completedDate.getTime() < today.getTime();
   };
