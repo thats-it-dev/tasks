@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom';
 import { db } from '../lib/db';
 
 export function CommandPalette() {
-  const { commandPaletteOpen, setCommandPaletteOpen, setAuthPanelOpen } = useAppStore();
+  const { commandPaletteOpen, setCommandPaletteOpen, setAuthPanelOpen, setCurrentView } = useAppStore();
   const { addTask } = useTaskStore();
   const { isEnabled, disable } = useSyncStore();
   const [search, setSearch] = useState('');
@@ -108,6 +108,17 @@ export function CommandPalette() {
               <Command.Group heading="Create">
                 <Command.Item onSelect={handleCreateTask}>
                   {search.trim() ? `Create task: ${search}` : 'Create task'}
+                </Command.Item>
+              </Command.Group>
+
+              <Command.Group heading="Navigation">
+                <Command.Item
+                  onSelect={() => {
+                    setCurrentView('archive');
+                    closePalette();
+                  }}
+                >
+                  View Archive
                 </Command.Item>
               </Command.Group>
 

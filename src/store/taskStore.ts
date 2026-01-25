@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Task } from '../lib/types';
-import { addTask as addTaskOp, toggleTask as toggleTaskOp, deleteTask as deleteTaskOp, getTasksByDueDate } from '../lib/taskOperations';
+import { addTask as addTaskOp, toggleTask as toggleTaskOp, deleteTask as deleteTaskOp, getTasksByDueDate, getArchivedTasks } from '../lib/taskOperations';
 
 const SAVED_FILTERS_KEY = 'tasks-saved-filters';
 
@@ -43,6 +43,7 @@ interface TaskStore {
   tasks: Task[];
   dueToday: Task[];
   dueLater: Task[];
+  archivedTasks: Map<string, Task[]>;
   loading: boolean;
 
   // Filter state
@@ -51,6 +52,7 @@ interface TaskStore {
 
   // Actions
   loadTasks: () => Promise<void>;
+  loadArchivedTasks: () => Promise<void>;
   addTask: (input: string) => Promise<void>;
   toggleTask: (id: string) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
@@ -66,12 +68,14 @@ interface TaskStore {
   // Filtered getters
   getFilteredDueToday: () => Task[];
   getFilteredDueLater: () => Task[];
+  getFilteredArchivedTasks: () => Map<string, Task[]>;
 }
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
   tasks: [],
   dueToday: [],
   dueLater: [],
+  archivedTasks: new Map(),
   loading: false,
 
   // Filter state
@@ -178,5 +182,29 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     ];
     if (allTerms.length === 0) return dueLater;
     return dueLater.filter(task => matchesFilter(task, allTerms));
+  },
+
+  loadArchivedTasks: async () => {
+    const archived = await getArchivedTasks();
+    set({ archivedTasks: archived });
+  },
+
+  getFilteredArchivedTasks: () => {
+    const { archivedTasks, filterText, savedFilters } = get();
+    const allTerms = [
+      ...filterText.split(',').map(t => t.trim()).filter(Boolean),
+      ...savedFilters,
+    ];
+    if (allTerms.length === 0) return archivedTasks;
+
+    // Filter each date group
+    const filtered = new Map<string, Task[]>();
+    for (const [date, tasks] of archivedTasks) {
+      const filteredTasks = tasks.filter(task => matchesFilter(task, allTerms));
+      if (filteredTasks.length > 0) {
+        filtered.set(date, filteredTasks);
+      }
+    }
+    return filtered;
   },
 }));

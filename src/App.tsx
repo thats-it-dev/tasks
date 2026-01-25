@@ -3,9 +3,11 @@ import { Layout } from './components/Layout';
 import { AuthPanel } from './components/AuthPanel';
 import { TaskList } from './components/TaskList';
 import { FilterBar } from './components/FilterBar';
+import { ArchiveView } from './components/ArchiveView';
 import { CommandPalette } from './components/CommandPalette';
 import { CommandButton } from './components/CommandButton';
 import { PullToRefresh } from './components/PullToRefresh';
+import { useAppStore } from './store/appStore';
 import { useTaskStore } from './store/taskStore';
 import { useSyncStore } from './store/syncStore';
 import { updateTask as updateTaskOp } from './lib/taskOperations';
@@ -14,6 +16,7 @@ import { useAppBadge } from './hooks/useAppBadge';
 import '@thatsit/ui/index.css';
 
 export default function App() {
+  const { currentView } = useAppStore();
   const { dueToday, loading, loadTasks, toggleTask, deleteTask, refreshTasks, getFilteredDueToday, getFilteredDueLater } = useTaskStore();
   const { initialize, onSyncComplete, forceFullSync, isEnabled } = useSyncStore();
 
@@ -80,17 +83,21 @@ export default function App() {
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={handleRefresh}>
-        <AuthPanel />
-        <FilterBar />
-        <TaskList
-          dueToday={getFilteredDueToday()}
-          dueLater={getFilteredDueLater()}
-          onToggle={toggleTask}
-          onDelete={deleteTask}
-          onUpdate={handleUpdate}
-        />
-      </PullToRefresh>
+      {currentView === 'archive' ? (
+        <ArchiveView />
+      ) : (
+        <PullToRefresh onRefresh={handleRefresh}>
+          <AuthPanel />
+          <FilterBar />
+          <TaskList
+            dueToday={getFilteredDueToday()}
+            dueLater={getFilteredDueLater()}
+            onToggle={toggleTask}
+            onDelete={deleteTask}
+            onUpdate={handleUpdate}
+          />
+        </PullToRefresh>
+      )}
       <CommandPalette />
       <CommandButton />
     </Layout>

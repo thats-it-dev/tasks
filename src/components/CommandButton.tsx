@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useTaskStore } from '../store/taskStore';
-import { CommandIcon, Plus, ChevronDown } from 'lucide-react';
+import { CommandIcon, Plus, ChevronDown, ArrowLeft } from 'lucide-react';
 import { Button } from '@thatsit/ui';
 import { useKeyboardHeight } from '../hooks/useKeyboardHeight';
 
 export function CommandButton() {
-  const { setCommandPaletteOpen, setFocusedTaskId } = useAppStore();
+  const { setCommandPaletteOpen, setFocusedTaskId, currentView, setCurrentView } = useAppStore();
   const { addTask, refreshTasks } = useTaskStore();
   const [showActions, setShowActions] = useState(false);
   const keyboardHeight = useKeyboardHeight();
@@ -73,15 +73,26 @@ export function CommandButton() {
         </Button>
       </div>
 
-      {/* Main command button */}
-      <Button
-        variant="ghost"
-        onClick={handleMainButtonClick}
-        className="lg:hidden md:visible w-12 h-12 items-center justify-center bg-[var(--bg)] rounded-full"
-        aria-label="Open command palette"
-      >
-        <CommandIcon size={28} />
-      </Button>
+      {/* Main command button / back button */}
+      {currentView === 'archive' ? (
+        <Button
+          variant="ghost"
+          onClick={() => setCurrentView('tasks')}
+          className="lg:hidden md:visible w-12 h-12 items-center justify-center bg-[var(--bg)] rounded-full"
+          aria-label="Back to tasks"
+        >
+          <ArrowLeft size={28} />
+        </Button>
+      ) : (
+        <Button
+          variant="ghost"
+          onClick={handleMainButtonClick}
+          className="lg:hidden md:visible w-12 h-12 items-center justify-center bg-[var(--bg)] rounded-full"
+          aria-label="Open command palette"
+        >
+          <CommandIcon size={28} />
+        </Button>
+      )}
     </div>
   );
 }

@@ -145,3 +145,59 @@ export async function getTasksByDueDate(): Promise<{
     dueLater: dueLater.sort(sortTasks),
   };
 }
+
+/**
+ * Get archived tasks grouped by completion date
+ * Archived = completed on a previous day AND not due today
+ */
+export async function getArchivedTasks(): Promise<Map<string, Task[]>> {
+  const tasks = await getAllTasks();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const archived = tasks.filter(task => {
+    if (!task.completed || !task.completedAt) return false;
+
+    const completedDate = new Date(task.completedAt);
+    completedDate.setHours(0, 0, 0, 0);
+
+    // If completed today, not archived
+    if (completedDate.getTime() === today.getTime()) return false;
+
+    // If due today, not archived (stays visible in main view)
+    if (task.dueDate) {
+      const dueDate = new Date(task.dueDate);
+      dueDate.setHours(0, 0, 0, 0);
+      if (dueDate.getTime() === today.getTime()) return false;
+    }
+
+    return true;
+  });
+
+  // Group by completion date
+  const grouped = new Map<string, Task[]>();
+
+  for (const task of archived) {
+    const completedDate = new Date(task.completedAt!);
+    const dateKey = completedDate.toISOString().split('T')[0]; // YYYY-MM-DD
+
+    if (!grouped.has(dateKey)) {
+      grouped.set(dateKey, []);
+    }
+    grouped.get(dateKey)!.push(task);
+  }
+
+  // Sort tasks within each group by completedAt descending
+  for (const tasks of grouped.values()) {
+    tasks.sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0));
+  }
+
+  // Return map with keys sorted newest first
+  const sortedKeys = Array.from(grouped.keys()).sort((a, b) => b.localeCompare(a));
+  const sortedMap = new Map<string, Task[]>();
+  for (const key of sortedKeys) {
+    sortedMap.set(key, grouped.get(key)!);
+  }
+
+  return sortedMap;
+}
