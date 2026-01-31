@@ -55,6 +55,7 @@ export class SyncEngine {
   private config: SyncEngineConfig | null = null;
   private retryQueue: RetryQueue;
   private operationLog: OperationLog;
+  private currentSyncPromise: Promise<SyncResult> | null = null;
 
   constructor() {
     this.clientId = getClientId();
@@ -106,21 +107,46 @@ export class SyncEngine {
   /**
    * Force a full sync by clearing the sync token.
    * This will re-fetch all data from the server.
+   * Waits for any in-progress sync to complete first.
    */
   async forceFullSync(): Promise<SyncResult> {
     if (!this.config) {
       throw new Error('SyncEngine not configured');
     }
 
+    // Wait for any in-progress sync to complete first
+    if (this.currentSyncPromise) {
+      try {
+        await this.currentSyncPromise;
+      } catch {
+        // Ignore errors from previous sync - we're forcing a new one
+      }
+    }
+
+    // Check if we're offline before attempting sync
+    if (!navigator.onLine) {
+      this.setStatus('offline');
+      return { pushed: 0, pulled: 0, conflicts: [] };
+    }
+
     // Clear the sync token to force a full pull
     const syncMeta = this.config.db.table<SyncMeta, string>('syncMeta');
     await syncMeta.delete('lastSyncToken');
 
-    return this.syncNow();
+    // Create new sync promise for the full sync
+    this.setStatus('syncing');
+    this.currentSyncPromise = this.performSync();
+
+    try {
+      return await this.currentSyncPromise;
+    } finally {
+      this.currentSyncPromise = null;
+    }
   }
 
   /**
    * Perform a sync immediately.
+   * If a sync is already in progress, returns the existing promise.
    */
   async syncNow(): Promise<SyncResult> {
     if (!this.api) {
@@ -131,12 +157,32 @@ export class SyncEngine {
       throw new Error('SyncEngine not configured');
     }
 
-    if (this.status === 'syncing') {
+    // If sync is in progress, return the existing promise so callers can await it
+    if (this.currentSyncPromise) {
+      return this.currentSyncPromise;
+    }
+
+    // Check if we're offline before attempting sync
+    if (!navigator.onLine) {
+      this.setStatus('offline');
       return { pushed: 0, pulled: 0, conflicts: [] };
     }
 
     this.setStatus('syncing');
 
+    this.currentSyncPromise = this.performSync();
+
+    try {
+      return await this.currentSyncPromise;
+    } finally {
+      this.currentSyncPromise = null;
+    }
+  }
+
+  /**
+   * Internal sync implementation.
+   */
+  private async performSync(): Promise<SyncResult> {
     try {
       // 1. Push local changes
       const pushResult = await this.pushChanges();
