@@ -315,9 +315,9 @@ export class SyncEngine {
       }
     }
 
-    // Update sync token
-    const syncMeta = db.table<SyncMeta, string>('syncMeta');
-    await syncMeta.put({ key: 'lastSyncToken', value: result.syncToken });
+    // NOTE: Do NOT update sync token here. The sync token should only be updated
+    // by pullChanges() to avoid skipping changes from other devices. The clientId
+    // parameter in pullChanges() already ensures we don't re-pull our own changes.
 
     // Mark operation complete
     this.operationLog.complete();
