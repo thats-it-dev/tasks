@@ -340,14 +340,19 @@ export class SyncEngine {
     const lastSyncMeta = await syncMeta.get('lastSyncToken');
     const since = lastSyncMeta?.value;
 
-    // Fetch changes from server - use table names as the server expects them
-    const result = await this.api.getChanges([...syncConfig.tables], since, this.clientId);
+    // Convert table names to sync types for the API request
+    const syncTypes = syncConfig.tables.map(t => getSyncType(t));
+
+    // Fetch changes from server using sync types (e.g., 'task' not 'tasks')
+    const result = await this.api.getChanges(syncTypes, since, this.clientId);
 
     let pulled = 0;
 
     // Apply remote changes for each table
     for (const tableName of syncConfig.tables) {
-      const tableChanges = result.changes[tableName] || [];
+      // Use sync type to read from response (server returns 'task', not 'tasks')
+      const syncType = getSyncType(tableName);
+      const tableChanges = result.changes[syncType] || [];
       const table = db.table(tableName);
 
       for (const change of tableChanges) {
