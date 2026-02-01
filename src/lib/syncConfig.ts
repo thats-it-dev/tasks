@@ -9,9 +9,9 @@ export const syncConfig = {
   /** Dexie table names that should be synced */
   tables: ['tasks'] as const,
 
-  /** Map table names to sync API type names (backend uses singular) */
+  /** Map table names to sync API type names */
   tableToSyncType: {
-    tasks: 'task',
+    tasks: 'tasks',
   } as Record<string, string>,
 
   /** Default sync server URL */

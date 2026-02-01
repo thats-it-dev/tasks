@@ -128,8 +128,8 @@ export async function getTasksByDueDate(): Promise<{
     if (task.dueDate) {
       const dueDate = new Date(task.dueDate);
       dueDate.setHours(0, 0, 0, 0);
-      // Due today: always show (even if completed on a previous day)
-      if (dueDate.getTime() === today.getTime()) return true;
+      // Due today: show if incomplete OR completed today (not on a previous day)
+      if (dueDate.getTime() === today.getTime()) return !wasCompletedOnPreviousDay(task);
       // Overdue: show if incomplete OR completed today
       if (dueDate < today) return !wasCompletedOnPreviousDay(task);
       return false;
